@@ -17,6 +17,8 @@
 # Asset meta data should only be ignored when the corresponding asset is also ignored
 !/[Aa]ssets/**/*.meta
 
+/[Aa]ssets/**/*.meta
+
 # Recordings can get excessive in size
 /[Rr]ecordings/
 
@@ -50,6 +52,8 @@ ExportedObj/
 *.mdb
 *.opendb
 *.VC.db
+
+.vsconfig
 
 # Unity3D generated meta files
 *.pidb.meta
