@@ -1,80 +1,143 @@
 # 🍌 Steal the Banana
 
-**Steal the Banana** est un jeu multijoueur PVP "chacun pour soi" développé en **C# avec Unity**.
-Incarnez un singe livreur dans la jungle, avec un objectif clair : ramener une banane sacrée (qui est elle-même incarnée par un autre joueur !) dans votre propre arbre.
+## 🎯 Concept
 
----
+Steal the Banana est un jeu d'action multijoueur en equipe, rapide et chaotique, dev sur Unity en C#.
 
-## 📖 Lore : La Banane Enchantée
+Une fois par an, Tatam et Robi offrent au village la Banane Enchantee. Sauf que cette banane est un joueur. Deux equipes de singes se battent pour la capturer et la livrer dans leur cabane.
 
-Une fois par an, le roi et la reine des singes (**Tatam & Robi**) offrent une banane enchantée à la tribu. Cette cérémonie sacrée déclenche une compétition acharnée : le singe qui parviendra à ramener cette relique dans sa cabane gagnera le respect éternel de tous et deviendra le héros incontesté du village.
-Mais attention, la banane n'a pas toujours l'intention de se laisser faire...
+## 🔁 Boucle de gameplay
 
-## 🎮 Concept du Jeu
+1. Lobby avec choix d'equipe.
+2. Debut de manche et selection aleatoire du joueur Banane.
+3. Capture, vols, assommages, livraisons, gain/perte de pieces.
+4. A 5:00, activation de Chad Banana.
+5. Fin de manche a 6:00 max ou victoire immediate sur livraison.
 
-- **Thème :** Livraison frénétique dans la jungle.
-- **Multijoueur & PVP :** Un pur _chacun pour soi_. Les singes doivent se battre pour capturer et livrer le joueur-banane.
-- **Ambiance Goofy :** Un univers décalé, très drôle et chaotique.
-- **Parties Rapides :** Une boucle de gameplay simple, efficace et nerveuse (des petites parties d'environ 6 minutes).
-- **Leaderboard :** Suivez le nombre de parties gagnées pour prouver qui est le vrai roi de la jungle !
+## 🐵 Roles et fantasy
 
-## ⚙️ Mécaniques Principales
+- Orang-outan: lent, puissant, assomme facilement.
+- Lemurien: rapide, dash, harcelement et interception.
+- Banane: role asymetrique, survie, fuite, liberation.
+- Chad Banana: transformation de fin de manche, inversion de pression.
 
-- **Un Colis Vivant :** Le colis que tous les joueurs s'arrachent est contrôlé par l'un d'entre eux.
-- **Système de Classes :** Jouez avec différentes classes de singes. Chaque classe possède sa propre **compétence unique** pour piéger les autres ou s'échapper.
-- **Le Plot Twist Musclé :** De façon aléatoire ou à la dernière minute de jeu, la banane subit une transformation radicale : elle devient **hyper musclée** et commence à démonter tous les singes sur son passage !
+## ⚡ Pouvoirs speciaux
 
-## 🛠️ Technologies
+- Pouvoir singe (Alt): extension du bras avec effet grappin.
+- Pouvoir banane (Alt): retirer la peau et sprint boost 5s, cooldown 50s.
 
-- **Moteur de jeu :** Unity
-- **Langage :** C#
+## 💰 Economie de partie
 
----
+### ✅ Gains
 
-## 🌐 Multiplayer Quickstart (Host + Client)
+- Assommer un ennemi: +5 pieces.
+- Attraper la banane: +10 pieces.
+- 1 seconde en portant la banane: +1 piece.
+- Livrer la banane dans sa cabane: +1000 pieces.
+- Livraison par un allie: +100 pieces pour chaque joueur de l'equipe.
+- Devenir Chad Banana: +2000 pieces.
+- Chad Banana touche un singe: vole 10% des pieces gagnees par la cible dans la manche.
 
-Cette section correspond a l implementation en cours dans:
+### ❌ Pertes
 
-- [Assets/Scripts/Multiplayer/PlayerController.cs](Assets/Scripts/Multiplayer/PlayerController.cs)
-- [Assets/Scripts/Multiplayer/NetworkManagerUI.cs](Assets/Scripts/Multiplayer/NetworkManagerUI.cs)
-- [Assets/Scripts/Multiplayer/LocalPlayerCameraFollow.cs](Assets/Scripts/Multiplayer/LocalPlayerCameraFollow.cs)
+- Frapper un allie: -2 pieces.
+- Equipe adverse possede la banane pendant 5 secondes: -2 pieces toutes les 5 secondes.
 
-### 1) Creer le prefab joueur reseau
+## 📜 Regles de manche
 
-1. Cree un prefab joueur dans `Assets/Prefabs` (ex: `PlayerNetworkPrefab`).
-2. Ajoute ces composants sur le prefab:
-   - `NetworkObject`
-   - `NetworkTransform`
-   - `Rigidbody`
-   - `PlayerController`
-   - `LocalPlayerCameraFollow` (optionnel mais recommande)
-3. Configure `NetworkTransform` en autorite serveur (valeur par defaut recommandee pour commencer).
+- Une manche dure 6 minutes maximum.
+- La manche s'arrete immediatement si une equipe livre la banane.
+- La banane doit etre assommee avant de pouvoir etre capturee.
+- Le prompt d'interaction de capture n'apparait que si la banane est knock.
+- A 5:00, la banane passe en mode Chad Banana.
 
-### 2) Configurer le NetworkManager
+## 🧱 Architecture Unity C#
 
-1. Dans l objet `NetworkManager` de la scene, assigne `PlayerNetworkPrefab` dans `Player Prefab`.
-2. Verifie que `Unity Transport` est bien sur le meme objet.
-3. Garde `Enable Scene Management` active.
+Ce projet cible Unity Netcode for GameObjects avec autorite serveur.
 
-### 3) Nettoyer la scene
+### 🛠️ Stack technique
 
-1. Supprime (ou desactive) le `Player` statique de test deja place dans la scene.
-2. Garde un seul objet `NetworkManager` avec le script `NetworkManagerUI`.
+- Unity 6
+- C#
+- Netcode for GameObjects
+- Unity Transport
+- Input System
 
-### 4) Tester sur un seul PC (2 instances)
+### 🧩 Repartition logique (Unity)
 
-1. Lance une instance en `Host` avec IP `127.0.0.1` et port `7777`.
-2. Lance une deuxieme instance en `Client` avec les memes valeurs.
-3. Verifie que les deux joueurs apparaissent et se voient bouger.
+- Server authority: logique de partie, scores, collisions de capture, validation des competences.
+- Client presentation: UI, camera locale, effets visuels et sonores.
+- Shared gameplay data: constantes, data des classes, progression, definitions des cooldowns.
 
-### 5) Tester sur LAN (plusieurs PC)
+### 📁 Proposition de dossiers
 
-1. Sur la machine Host, trouve l IP locale (ex: `192.168.1.42`).
-2. Host: demarre avec cette IP + port `7777`.
-3. Clients: entrent l IP de l Host + meme port.
-4. Autorise le port `7777` dans le pare-feu Windows de la machine Host si necessaire.
+- Assets/Scripts/Multiplayer
+- Assets/Scripts/Game
+- Assets/Scripts/Gameplay
+- Assets/Scripts/UI
+- Assets/Scripts/Data
 
-### Notes importantes
+## 🗺️ Roadmap de developpement
 
-- Le deplacement est server-authoritative: le client envoie son input, le serveur deplace le joueur.
-- Si `Player Prefab` manque ou est mal configure, `NetworkManagerUI` affiche un message d erreur explicite.
+## 1️⃣ Phase 1 - Squelette reseau et lobby
+
+Objectif: faire tourner un cycle propre Lobby -> Match -> End.
+
+- Creer GameStateManager serveur avec etats Waiting, Countdown, InGame, EndGame.
+- Ajouter UI lobby avec choix equipe et timer de manche.
+- Definir GameConstants (duree manche, min joueurs, cooldowns de base).
+- Synchroniser etats et timer via NetworkVariables.
+
+## 2️⃣ Phase 2 - Roles et competences
+
+Objectif: donner une identite jouable aux classes et a la banane.
+
+- Tirage aleatoire du joueur Banane au lancement de manche.
+- Application des stats par classe (vitesse, puissance, mobilite).
+- Competences via input client, validation et execution cote serveur.
+- Ajout probabilite cumulative de devenir Banane (+1% si non selectionne a la manche precedente).
+
+## 3️⃣ Phase 3 - Capture et bagarre
+
+Objectif: creer le coeur fun du jeu avec des interactions robustes.
+
+- Systeme hitbox/overlap serveur pour capture de banane.
+- Gestion vol de banane entre joueurs.
+- Systeme struggle pour liberation de la banane.
+- Validation zone cabane et attribution score/economie.
+
+## 4️⃣ Phase 4 - Chad Banana et polish
+
+Objectif: finaliser le pic de tension et la presentation.
+
+- Declenchement Chad Banana a 5:00.
+- Buffs massifs banane et capacite offensive.
+- Effets client: musique boss, feedback camera, VFX de transformation.
+- Ecran de fin avec podium, MVP, anti-MVP, recap pieces.
+
+## 🎮 Deroulement cible d'une partie
+
+1. Les joueurs arrivent au lobby (shop, cosmetics, upgrades).
+2. Popup de choix d'equipe.
+3. Popup randomBanana et selection aleatoire.
+4. Spawn des equipes et de la banane dans la map.
+5. Phase de capture/contre-capture.
+6. Activation Chad Banana a 5:00.
+7. Fin, podium, recompenses et progression meta.
+
+## 📡 Notes d'implementation multiplayer
+
+- Mouvement et etats critiques doivent rester server authoritative.
+- Le client envoie des intents (input/commande), pas des resultats finaux.
+- Les collisions de capture, score, economie et victoire doivent etre valides cote serveur uniquement.
+- L'UI doit refleter les NetworkVariables et events RPC, jamais l'inverse.
+
+## 🏁 Objectif MVP
+
+Le MVP est valide si:
+
+1. 2 joueurs minimum peuvent rejoindre une meme partie.
+2. Une banane est choisie, visible, capturable et livrable.
+3. Le score/economie evolue correctement en temps reel.
+4. Chad Banana s'active a 5:00.
+5. La manche se termine avec un ecran resultat lisible.
