@@ -5,9 +5,10 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerController : NetworkBehaviour
 {
-    [SerializeField] private float moveSpeed = 5f;
+    [SerializeField] private float moveSpeed = 5f; // fallback si PlayerRoleHandler absent
     [SerializeField] private float inputSendRate = 30f;
 
+    private PlayerRoleHandler roleHandler;
     private Rigidbody playerRigidbody;
     private InputAction moveAction;
     private Vector2 currentMoveInput;
@@ -17,6 +18,7 @@ public class PlayerController : NetworkBehaviour
     private void Awake()
     {
         playerRigidbody = GetComponent<Rigidbody>();
+        roleHandler = GetComponent<PlayerRoleHandler>();
 
         moveAction = new InputAction("Move", InputActionType.Value);
 
@@ -97,7 +99,8 @@ public class PlayerController : NetworkBehaviour
             return;
         }
 
-        Vector3 nextPosition = playerRigidbody.position + moveDirection * moveSpeed * Time.fixedDeltaTime;
+        float currentSpeed = roleHandler != null ? roleHandler.MoveSpeed : moveSpeed;
+        Vector3 nextPosition = playerRigidbody.position + moveDirection * currentSpeed * Time.fixedDeltaTime;
         playerRigidbody.MovePosition(nextPosition);
     }
 
