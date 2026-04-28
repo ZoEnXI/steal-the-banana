@@ -208,9 +208,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   ShowTopMostFoldoutHeaderGroup: 1
-  moveSpeed: 5
+  moveSpeed: 10
   inputSendRate: 30
-  jumpForce: 8
+  jumpForce: 9
   rotationSpeed: 10
 --- !u!114 &-7721046963770819419
 MonoBehaviour:
