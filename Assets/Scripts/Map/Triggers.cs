@@ -57,7 +57,7 @@ public class Triggers : MonoBehaviour
                     player.transform.localScale *= 3.5f;
                     break;
                 case TriggerAction.SizeDown:
-                    player.transform.localScale *= 0.5f;
+                    player.transform.localScale *= 0.3f;
                     break;
                 case TriggerAction.Explode:
                     // Désintègre le joueur proprement en multijoueur
