@@ -5,9 +5,9 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerController : NetworkBehaviour
 {
-    [SerializeField] private float moveSpeed = 5f;
+    [SerializeField] private float moveSpeed = 10f;
     [SerializeField] private float inputSendRate = 30f;
-    [SerializeField] private float jumpForce = 6f;
+    [SerializeField] private float jumpForce = 8f;
     [SerializeField] private float rotationSpeed = 10f;
 
     private Rigidbody playerRigidbody;
