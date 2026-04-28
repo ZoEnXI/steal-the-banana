@@ -175,7 +175,7 @@ public class PlayerController : NetworkBehaviour
         // Apply immediate vertical velocity (more responsive than AddForce sometimes)
         playerRigidbody.linearVelocity = new Vector3(playerRigidbody.linearVelocity.x, jumpForce, playerRigidbody.linearVelocity.z);
 
-        // Apply Smooth Rotation Target
+            // Apply Smooth Rotation Target (World Space)
         if (direction.sqrMagnitude > 0.0001f)
         {
             Vector3 eulerDelta = Vector3.zero;
@@ -184,7 +184,8 @@ public class PlayerController : NetworkBehaviour
             else
                 eulerDelta.x = direction.y > 0f ? 90f : -90f;
 
-            targetRotation *= Quaternion.Euler(eulerDelta);
+            // L'ordre est crucial : (Nouvelle Rotation) * (Ancienne Rotation) = World Space
+            targetRotation = Quaternion.Euler(eulerDelta) * targetRotation;
         }
     }
 

@@ -13,7 +13,7 @@ public class NetworkManagerUI : MonoBehaviour
     {
         NetworkManager networkManager = NetworkManager.Singleton;
 
-        GUILayout.BeginArea(new Rect(10, 10, 360, 340));
+        GUILayout.BeginArea(new Rect(10, 10, 800, 800));
 
         if (networkManager == null)
         {
