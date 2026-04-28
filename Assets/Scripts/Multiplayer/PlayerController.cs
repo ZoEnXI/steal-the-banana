@@ -7,12 +7,17 @@ public class PlayerController : NetworkBehaviour
 {
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float inputSendRate = 30f;
+    [SerializeField] private float jumpForce = 6f;
+    [SerializeField] private float rotationSpeed = 10f;
 
     private Rigidbody playerRigidbody;
     private InputAction moveAction;
+    private InputAction jumpAction;
     private Vector2 currentMoveInput;
+    private Vector2 localMoveInput;
     private Vector2 lastSentInput;
     private float nextInputSendTime;
+    private Quaternion targetRotation;
 
     private void Awake()
     {
@@ -39,21 +44,28 @@ public class PlayerController : NetworkBehaviour
         arrowsBinding.With("Right", "<Keyboard>/rightArrow");
 
         moveAction.AddBinding("<Gamepad>/leftStick");
+
+        jumpAction = new InputAction("Jump", InputActionType.Button);
+        jumpAction.AddBinding("<Keyboard>/space");
+        jumpAction.AddBinding("<Gamepad>/buttonSouth");
     }
 
     private void OnEnable()
     {
         moveAction?.Enable();
+        jumpAction?.Enable();
     }
 
     private void OnDisable()
     {
         moveAction?.Disable();
+        jumpAction?.Disable();
     }
 
     private void OnDestroy()
     {
         moveAction?.Dispose();
+        jumpAction?.Dispose();
     }
 
     public override void OnNetworkSpawn()
@@ -66,6 +78,7 @@ public class PlayerController : NetworkBehaviour
         // Only the server simulates player physics to keep a single source of truth.
         playerRigidbody.isKinematic = !IsServer;
         playerRigidbody.interpolation = RigidbodyInterpolation.Interpolate;
+        targetRotation = transform.rotation;
     }
 
     private void Update()
@@ -76,6 +89,7 @@ public class PlayerController : NetworkBehaviour
         }
 
         HandleMovementInput();
+        HandleJumpInput();
     }
 
     private void FixedUpdate()
@@ -92,13 +106,17 @@ public class PlayerController : NetworkBehaviour
             moveDirection.Normalize();
         }
 
-        if (moveDirection.sqrMagnitude <= 0.0001f)
+        if (moveDirection.sqrMagnitude > 0.0001f)
         {
-            return;
+            Vector3 nextPosition = playerRigidbody.position + moveDirection * moveSpeed * Time.fixedDeltaTime;
+            playerRigidbody.MovePosition(nextPosition);
         }
 
-        Vector3 nextPosition = playerRigidbody.position + moveDirection * moveSpeed * Time.fixedDeltaTime;
-        playerRigidbody.MovePosition(nextPosition);
+        if (Quaternion.Angle(playerRigidbody.rotation, targetRotation) > 0.1f)
+        {
+            Quaternion newRotation = Quaternion.Slerp(playerRigidbody.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime);
+            playerRigidbody.MoveRotation(newRotation);
+        }
     }
 
     private void HandleMovementInput()
@@ -109,6 +127,8 @@ public class PlayerController : NetworkBehaviour
         {
             input.Normalize();
         }
+
+        localMoveInput = input;
 
         if (IsServer)
         {
@@ -129,6 +149,45 @@ public class PlayerController : NetworkBehaviour
         nextInputSendTime = Time.time + 1f / Mathf.Max(1f, inputSendRate);
     }
 
+    private void HandleJumpInput()
+    {
+        if (jumpAction != null && jumpAction.triggered)
+        {
+            if (IsServer)
+            {
+                TryPerformJump(localMoveInput);
+            }
+            else
+            {
+                RequestJumpRpc(localMoveInput);
+            }
+        }
+    }
+
+    private void TryPerformJump(Vector2 direction)
+    {
+        // Simple check: if we are not moving up/down much, we assume we are on the ground
+        if (Mathf.Abs(playerRigidbody.linearVelocity.y) > 0.1f)
+        {
+            return; 
+        }
+
+        // Apply immediate vertical velocity (more responsive than AddForce sometimes)
+        playerRigidbody.linearVelocity = new Vector3(playerRigidbody.linearVelocity.x, jumpForce, playerRigidbody.linearVelocity.z);
+
+        // Apply Smooth Rotation Target
+        if (direction.sqrMagnitude > 0.0001f)
+        {
+            Vector3 eulerDelta = Vector3.zero;
+            if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
+                eulerDelta.z = direction.x > 0f ? -90f : 90f;
+            else
+                eulerDelta.x = direction.y > 0f ? 90f : -90f;
+
+            targetRotation *= Quaternion.Euler(eulerDelta);
+        }
+    }
+
     [Rpc(SendTo.Server)]
     private void SendMoveInputRpc(Vector2 input, RpcParams rpcParams = default)
     {
@@ -138,5 +197,16 @@ public class PlayerController : NetworkBehaviour
         }
 
         currentMoveInput = input;
+    }
+
+    [Rpc(SendTo.Server)]
+    private void RequestJumpRpc(Vector2 direction, RpcParams rpcParams = default)
+    {
+        if (rpcParams.Receive.SenderClientId != OwnerClientId)
+        {
+            return;
+        }
+
+        TryPerformJump(direction);
     }
 }
